@@ -1,1 +1,1 @@
-C:\Code\Rust\test_html\target\debug\test_html.exe: C:\Code\Rust\test_html\src\main.rs
+C:\Code\Rust\Random-Data\target\debug\test_html.exe: C:\Code\Rust\Random-Data\src\main.rs
