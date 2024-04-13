@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use serde::{Serialize, Deserialize};
-use serde_json::{json, Value};
+use serde_json::{json, Value, to_string_pretty};
 
 #[derive(Debug, Hash, Eq, PartialEq, Copy, Clone, Serialize, Deserialize)]
 enum Type {
@@ -106,7 +106,7 @@ impl Pokemon {
     }
 }
 fn main() {
-    let url = "https://pokemondb.net/location/unova-dreamyard";
+    let url = "https://pokemondb.net/location/unova-aspertia-city";
     let body = ureq::get(url).call().unwrap().into_string().unwrap();
     let s = stuff(body.split("\n").collect::<Vec<_>>());
 	let mut keys: Vec<&str> = Vec::new();
@@ -159,6 +159,7 @@ fn main() {
 		}
 		i += 1;
 	}
+	println!("{}", to_string_pretty(&json_obj).unwrap());
 }
 fn get_nested_object<'a>(json_value: &'a mut Value, keys: &[&str]) -> Option<&'a mut Value> {
     let mut current_value = json_value;
