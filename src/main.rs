@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use serde::{Serialize, Deserialize};
-use serde_json::{json, Value, to_string_pretty};
+use serde_json::{json, Value};
 
 #[derive(Debug, Hash, Eq, PartialEq, Copy, Clone, Serialize, Deserialize)]
 enum Type {
@@ -106,52 +106,59 @@ impl Pokemon {
     }
 }
 fn main() {
-    let url = "https://pokemondb.net/location/unova-route-1";
+    let url = "https://pokemondb.net/location/unova-dreamyard";
     let body = ureq::get(url).call().unwrap().into_string().unwrap();
     let s = stuff(body.split("\n").collect::<Vec<_>>());
-	let mut keys = Vec::new();
+	let mut keys: Vec<&str> = Vec::new();
 	let mut json_obj = json!({/*"Route 1": {}*/});
-	for x in s.iter() {
-		if x == "Walking" {
-			while keys.len() != 0 {
-				keys.pop();
+	let mut qwe = HashMap::new();
+	qwe.insert("Walking".to_string(), "Grass".to_string());
+	qwe.insert("Surfing".to_string(), "Water".to_string());
+	qwe.insert("Super Rod".to_string(), "Fishing".to_string());
+	qwe.insert("Interact".to_string(), "Others".to_string());
+	qwe.insert("Gift".to_string(), "Others".to_string());
+	let mut i = 0;
+	while i < s.len() {
+		let x = &s[i];
+		if x.chars().nth(0).unwrap().is_ascii_uppercase() {
+			if qwe.contains_key(x) {
+				keys.clear();
+				if let Some(a) = get_nested_object(&mut json_obj, &keys) {
+					if a[&qwe[x]] == Value::Null || a[&qwe[x]][x] == Value::Null {
+						a[&qwe[x]][x] = json!({});
+					}
+					keys.push(&qwe[x]);
+					keys.push(x);
+				}
 			}
-			if let Some(a) = get_nested_object(&mut json_obj, &keys) {
-				a["Grass"][x] = json!({});
-				keys.push("Grass");
-				keys.push(x);
+			else {
+				let _ = keys.pop();
+				if let Some(a) = get_nested_object(&mut json_obj, &keys) {
+					if a[x] == Value::Null {
+						a[x] = json!({});
+					}
+					keys.push(x);
+				}
 			}
 		}
-		else if x == "Surfing" {
-			while keys.len() != 0 {
-				keys.pop();
-			}
+		else {
 			if let Some(a) = get_nested_object(&mut json_obj, &keys) {
-				a["Water"][x] = json!(x);
-				keys.push("Water");
-				keys.push(x);
+				if a[x] == Value::Null {
+					a[x] = json!([]);
+				}
+				let b = a[x].as_array_mut().unwrap();
+				b.push(json!([
+					s[i + 1].parse::<bool>().unwrap(),
+					s[i + 2].parse::<bool>().unwrap(),
+					s[i + 3].parse::<bool>().unwrap(),
+					s[i + 4].parse::<bool>().unwrap(),
+					s[i + 5]
+				]));
+				i += 5;
 			}
 		}
-		else if x == "Super Rod" {
-			while keys.len() != 0 {
-				keys.pop();
-			}
-			if let Some(a) = get_nested_object(&mut json_obj, &keys) {
-				a["Fishing"][x] = json!({});
-				keys.push("Fishing");
-				keys.push(x);
-			}
-		}
+		i += 1;
 	}
-	println!("{:#?}", json_obj);
-	println!("{:#?}", keys);
-	let mut table = create_table();
-	for (k, mut v) in &mut table {
-		v.remove(&Type::None);
-	}
-	let mut file = File::create(r"..\data\matchup.json").unwrap();
-	file.write(json!(table).to_string().as_bytes());
-	//file.write(to_string_pretty(&json!(table)).unwrap().as_bytes());
 }
 fn get_nested_object<'a>(json_value: &'a mut Value, keys: &[&str]) -> Option<&'a mut Value> {
     let mut current_value = json_value;
@@ -166,210 +173,6 @@ fn get_nested_object<'a>(json_value: &'a mut Value, keys: &[&str]) -> Option<&'a
 
     Some(current_value)
 }
-/*
-[
-    "Walking",
-    "patrat",
-    "true",
-    "true",
-    "false",
-    "false",
-    "2-4",
-    "lillipup",
-    "true",
-    "true",
-    "false",
-    "false",
-    "2-4",
-    "watchog",
-    "false",
-    "false",
-    "true",
-    "true",
-    "56-59",
-    "herdier",
-    "false",
-    "false",
-    "true",
-    "true",
-    "56-59",
-    "jigglypuff",
-    "false",
-    "false",
-    "true",
-    "true",
-    "57",
-    "Double Grass",
-    "watchog",
-    "true",
-    "true",
-    "false",
-    "false",
-    "32-35",
-    "herdier",
-    "true",
-    "true",
-    "false",
-    "false",
-    "32-34",
-    "scraggy",
-    "true",
-    "true",
-    "false",
-    "false",
-    "33-35",
-    "watchog",
-    "false",
-    "false",
-    "true",
-    "true",
-    "64-67",
-    "herdier",
-    "false",
-    "false",
-    "true",
-    "true",
-    "64-67",
-    "jigglypuff",
-    "false",
-    "false",
-    "true",
-    "true",
-    "65",
-    "scrafty",
-    "false",
-    "false",
-    "true",
-    "true",
-    "66-67",
-    "Shaking/Bubbling spots",
-    "audino",
-    "true",
-    "true",
-    "false",
-    "false",
-    "2-4",
-    "audino",
-    "false",
-    "false",
-    "true",
-    "true",
-    "56-59",
-    "wigglytuff",
-    "false",
-    "false",
-    "true",
-    "true",
-    "59",
-    "stoutland",
-    "false",
-    "false",
-    "true",
-    "true",
-    "59",
-    "dunsparce",
-    "false",
-    "false",
-    "true",
-    "true",
-    "57",
-    "Swarm",
-    "farfetchd",
-    "true",
-    "true",
-    "false",
-    "false",
-    "2",
-    "Surfing",
-    "basculin-red-striped",
-    "true",
-    "true",
-    "false",
-    "false",
-    "5-15",
-    "basculin-red-striped",
-    "false",
-    "false",
-    "true",
-    "true",
-    "45-60",
-    "Shaking/Bubbling spots",
-    "basculin-red-striped",
-    "true",
-    "true",
-    "false",
-    "false",
-    "5-20",
-    "basculin-red-striped",
-    "false",
-    "false",
-    "true",
-    "true",
-    "45-60",
-    "Super Rod",
-    "basculin-red-striped",
-    "true",
-    "true",
-    "false",
-    "false",
-    "35-55",
-    "basculin-red-striped",
-    "false",
-    "false",
-    "true",
-    "true",
-    "40-70",
-    "feebas",
-    "true",
-    "true",
-    "false",
-    "false",
-    "35-55",
-    "feebas",
-    "false",
-    "false",
-    "true",
-    "true",
-    "50-70",
-    "Shaking/Bubbling spots",
-    "feebas",
-    "true",
-    "true",
-    "false",
-    "false",
-    "35-60",
-    "basculin-red-striped",
-    "true",
-    "true",
-    "false",
-    "false",
-    "35-70",
-    "feebas",
-    "false",
-    "false",
-    "true",
-    "true",
-    "40-70",
-    "basculin-red-striped",
-    "false",
-    "false",
-    "true",
-    "true",
-    "40-60",
-    "milotic",
-    "true",
-    "true",
-    "false",
-    "false",
-    "45-70",
-    "milotic",
-    "false",
-    "false",
-    "true",
-    "true",
-    "50-70",
-]
-*/
 fn stuff(lines: Vec<&str>) -> Vec<String>{
     let mut res = Vec::new();
     for l in lines.iter() {
@@ -515,4 +318,415 @@ fn lines(file_path: &str) -> Vec<String> {
     return reader.lines().map(|line| line.unwrap()).collect();
 }
 /*
+Object {
+    "Grass": Object {
+        "Double Grass": Object {
+            "ariados": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("49"),
+                ],
+            ],
+            "golbat": Array [
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("64-67"),
+                ],
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("65-66"),
+                ],
+            ],
+            "jigglypuff": Array [
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("65"),
+                ],
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("65"),
+                ],
+            ],
+            "kricketune": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("48-50"),
+                ],
+            ],
+            "ledian": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("49"),
+                ],
+            ],
+            "liepard": Array [
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("65-66"),
+                ],
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("64-67"),
+                ],
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("47"),
+                ],
+            ],
+            "munna": Array [
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("65-66"),
+                ],
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("48"),
+                ],
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("65-66"),
+                ],
+            ],
+            "raticate": Array [
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("64-67"),
+                ],
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("48"),
+                ],
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("65"),
+                ],
+            ],
+            "venomoth": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("48-50"),
+                ],
+            ],
+            "watchog": Array [
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("65"),
+                ],
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("64-67"),
+                ],
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("47"),
+                ],
+            ],
+        },
+        "Shaking/Bubbling spots": Object {
+            "audino": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("8-11"),
+                ],
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("56-59"),
+                ],
+            ],
+            "crobat": Array [
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("59"),
+                ],
+            ],
+            "dunsparce": Array [
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("57"),
+                ],
+            ],
+            "musharna": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("11"),
+                ],
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("59"),
+                ],
+            ],
+            "wigglytuff": Array [
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("59"),
+                ],
+            ],
+        },
+        "Walking": Object {
+            "ariados": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("49"),
+                ],
+            ],
+            "golbat": Array [
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("57-58"),
+                ],
+            ],
+            "jigglypuff": Array [
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("57"),
+                ],
+            ],
+            "kricketune": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("47-50"),
+                ],
+            ],
+            "ledian": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("49"),
+                ],
+            ],
+            "liepard": Array [
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("56-59"),
+                ],
+            ],
+            "munna": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("48-49"),
+                ],
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("8-10"),
+                ],
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("57-58"),
+                ],
+            ],
+            "patrat": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("8-11"),
+                ],
+            ],
+            "purrloin": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("8-11"),
+                ],
+            ],
+            "raticate": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("47-50"),
+                ],
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("57"),
+                ],
+            ],
+            "watchog": Array [
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(true),
+                    String("56-59"),
+                ],
+            ],
+        },
+    },
+    "Others1": Object {
+        "Interact": Object {
+            "latias": Array [
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    String("68"),
+                ],
+            ],
+            "latios": Array [
+                Array [
+                    Bool(false),
+                    Bool(false),
+                    Bool(true),
+                    Bool(false),
+                    String("68"),
+                ],
+            ],
+            "musharna": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("50"),
+                ],
+            ],
+        },
+    },
+    "Others2": Object {
+        "Gift": Object {
+            "panpour": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("10"),
+                ],
+            ],
+            "pansage": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("10"),
+                ],
+            ],
+            "pansear": Array [
+                Array [
+                    Bool(true),
+                    Bool(true),
+                    Bool(false),
+                    Bool(false),
+                    String("10"),
+                ],
+            ],
+        },
+    },
+}
 */
