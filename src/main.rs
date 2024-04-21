@@ -81,7 +81,7 @@ fn main() {
 	//fix route selector
 	//for now route_selector selects every route in the first table
 	//remove all the non Unova ones
-	//for route one it return 7 but it should be 5 (4 uniques and 1 repeated)
+	//for route one it returns 7 but it should be 5 (4 uniques and 1 repeated)
 }
 
 fn get_nested_object<'a>(json_value: &'a mut Value, keys: &[&str]) -> Option<&'a mut Value> {
