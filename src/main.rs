@@ -72,14 +72,15 @@ fn main() {
 	let item_selector = Selector::parse(r#"table.roundy[cellspacing="2"]"#).unwrap();
 	let pokemon_selector = Selector::parse(r#"table.roundy[width="500px"]"#).unwrap();
 	let trainer_selector = Selector::parse(r#"table.roundy[align="left"]"#).unwrap();
-	let route_selector = Selector::parse(r#"table.roundy >
-	tbody > tr > td.roundy[style="border: 2px solid #4AA14D; background: #A2E0A3"]
-	> table.roundy[width="100%"] > tbody > tr > td > table > tbody > tr > td > a"#).unwrap();
+	let route_selector = Selector::parse(r#"table.roundy > tbody > tr >
+	td.roundy[style="border: 2px solid #4AA14D; background: #A2E0A3"] >
+	table.roundy[width="100%"] > tbody > tr > td > table > tbody > tr > td > a"#).unwrap();
+	
+	println!("{}", fragment.select(&route_selector).collect::<Vec<_>>().len() == 7);
 	
 	//fix route selector
 	//for now route_selector selects every route in the first table
 	//remove all the non Unova ones
-	
 }
 
 fn get_nested_object<'a>(json_value: &'a mut Value, keys: &[&str]) -> Option<&'a mut Value> {
