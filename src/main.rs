@@ -1,50 +1,67 @@
-use ureq;
+use scraper::{ElementRef, Html, Selector};
+use serde::{Deserialize, Serialize};
+use serde_json::{json, to_string_pretty, Value};
+use std::collections::btree_map::Values;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
-use serde::{Serialize, Deserialize};
-use serde_json::{json, Value, to_string_pretty};
-use scraper::{Html, Selector, ElementRef};
+use ureq;
 
 struct Item {
-	name: String,
-	quantity: u8,
-	games: [bool; 4]
+    name: String,
+    quantity: u8,
+    games: [bool; 4],
 }
 
 fn main() {
-	let url = "https://bulbapedia.bulbagarden.net/wiki/Unova_Route_1";
+    let url = "https://bulbapedia.bulbagarden.net/wiki/Unova_Route_1";
     let document = ureq::get(url).call().unwrap().into_string().unwrap();
-	let fragment = Html::parse_fragment(&document);
-	
-	let item_selector = Selector::parse(r#"table.roundy[cellspacing="2"]"#).unwrap();
-	let pokemon_selector = Selector::parse(r#"table.roundy[width="500px"]"#).unwrap();
-	let trainer_selector = Selector::parse(r#"table.roundy[align="left"]"#).unwrap();
-	let route_selector = Selector::parse(r#"table.roundy > tbody > tr >
-	td.roundy[style="border: 2px solid #4AA14D; background: #A2E0A3"] >
-	table.roundy[width="100%"] > tbody > tr > td > table > tbody > tr > td > a"#).unwrap();
-	
-	println!("{}", fragment.select(&route_selector).collect::<Vec<_>>().len() == 7);
-	let routes: Vec<_> = {
-		let mut res = Vec::new();
-		for i in fragment.select(&route_selector) {
-			println!("{:?}", i.value());
-			if i.value().attr("href").unwrap().starts_with("/wiki/Unova") {
-				res.push(i);
-			}
-		}
-		res
-	};
-	for i in routes.iter() {
-		println!("{:?}", i.value());
-	}
-	get_items(url);
-	//fix route selector
-	//for now route_selector selects every route in the first table
-	//remove all the non Unova ones
-	//for route one it returns 7 but it should be 5 (4 uniques and 1 repeated)
+    let fragment = Html::parse_fragment(&document);
 }
 
+fn get_items(url: &str) -> Value {
+    let document = ureq::get(url).call().unwrap().into_string().unwrap();
+    let fragment = Html::parse_fragment(&document);
+    let selector = Selector::parse(r#"table.roundy[cellspacing="2"] > tbody > tr"#).unwrap();
+
+    let table = {
+        let table = fragment.select(&selector).collect::<Vec<_>>();
+        table[1..table.len() - 1].to_vec()
+    };
+
+    return json!({});
+}
+fn get_pokemon(url: &str) -> Value {
+    let document = ureq::get(url).call().unwrap().into_string().unwrap();
+    let fragment = Html::parse_fragment(&document);
+    let selector = Selector::parse(r#"table.roundy[width="500px"]"#).unwrap();
+
+    return json!({});
+}
+fn get_trainer(url: &str) -> Value {
+    let document = ureq::get(url).call().unwrap().into_string().unwrap();
+    let fragment = Html::parse_fragment(&document);
+    let selector = Selector::parse(r#"table.roundy[align="left"]"#).unwrap();
+
+    return json!({});
+}
+fn get_routes(url: &str) -> Value {
+    let document = ureq::get(url).call().unwrap().into_string().unwrap();
+    let fragment = Html::parse_fragment(&document);
+    let selector = Selector::parse(
+        r#"table.roundy > tbody > tr >
+		td.roundy[style="border: 2px solid #4AA14D; background: #A2E0A3"] >
+		table.roundy[width="100%"] > tbody > tr > td > table > tbody > tr > td > a"#,
+    )
+    .unwrap();
+
+    let table = {
+        let table = fragment.select(&selector).collect::<Vec<_>>();
+        table[1..table.len() - 4].to_vec()
+    };
+
+    return json!({});
+}
 fn get_nested_object<'a>(json_value: &'a mut Value, keys: &[&str]) -> Option<&'a mut Value> {
     let mut current_value = json_value;
 
@@ -58,19 +75,7 @@ fn get_nested_object<'a>(json_value: &'a mut Value, keys: &[&str]) -> Option<&'a
 
     Some(current_value)
 }
-fn get_items(url: &str) /*-> Vec<ElementRef<'_>> */{
-	let document = ureq::get(url).call().unwrap().into_string().unwrap();
-	let fragment = Html::parse_fragment(&document);
-	let selector = Selector::parse(r#"table.roundy[cellspacing="2"] > tbody > tr"#).unwrap();
-	//let s2 = Selector::parse(r#"td"#).unwrap();
-	let table = {
-		let table = fragment.select(&selector).collect::<Vec<_>>();
-		table[1..table.len() - 1].to_vec()
-	};
-	for i in table {
-		println!("{:?}", i.value());
-	}
-}
+
 //For the item table:
 //	if it has 4 children, the 2nd one has the item and quantity and the 4th is the version
 //	item: name = td > a; quantity = td
