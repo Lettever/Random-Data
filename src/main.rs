@@ -77,22 +77,6 @@ fn get_items(url: &str) /*-> Vec<ElementRef<'_>> */{
 //	version: td > b > span > a > span
 
 /*
-<tr>
-<tr>
-<tr>
-<tr>
-<tr>
-<tr>
-<tr>
-<tr>
-<tr>
-<tr>
-<tr>
-<tr>
-<tr>
-*/
-
-/*
 Route 1
 Route 2
 Route 3
