@@ -1,4 +1,5 @@
-encapsulation dot1Q VLANID #troca a vlan para VLANID
+int gi0/0.10 #sub interface 10
+encapsulation dot1Q 10 #troca a vlan para 10
 spanning-tree bpduguard enable #prevents loops
 spanning-tree portfast #connects devices that arent switches
 spanning-tree vlan 1-4094 root primary #is used in switch configuration to set the switch as the primary root bridge for all VLANs
