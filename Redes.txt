@@ -1,0 +1,37 @@
+encapsulation dot1Q VLANID #troca a vlan para VLANID
+spanning-tree bpduguard enable #prevents loops
+spanning-tree portfast #connects devices that arent switches
+spanning-tree vlan 1-4094 root primary #is used in switch configuration to set the switch as the primary root bridge for all VLANs
+spanning-tree mode rapid-pvst #configure a switch to use Rapid Per-VLAN Spanning Tree
+standby 1 preempt #This command ensures that a router will take over as the active router (default gateway) when it has a higher priority than the current active router
+standby 1 priority 110 #set the priority within an HSRP group, the group in this one is 1
+standby 1 ip 10.1.1.1 #configure a virtual IP address for an HSRP group, virtual IP address is shared among the routers in the HSRP group
+vtp mode server #Configures the switch to operate in VTP server mode.
+vtp domain LOCAL_LAN #configure the VLAN Trunking Protocol domain name on a Cisco switch
+vtp password YR2233 #Sets the VTP password to "YR2233"
+spanning-tree vlan 30,31 root primary #configures a Cisco switch to become the primary root bridge for VLANs 30 and 31
+channel-group 1 mode desirable #is used to configure a Cisco switch port to participate in a port channel
+switchport mode trunk #configure a switch port to operate in trunk mode
+switchport port-security #enable port security on a switch port
+switchport port-security maximum 1 #only one MAC address is allowed to be learned and allowed on that particular port
+switchport port-security mac-address sticky #configures the switch port to dynamically learn and secure MAC addresses
+switchport port-security violation shutdown #shutsdown the switch on a violation
+ssid WLAN30 #creates or configures a wireless network with the Service Set Identifier "WLAN30"
+authentication open #is used in Cisco IOS configurations to specify that open authentication will be used for a wireless network
+authentication key-management wpa #is used in Cisco router or access point configuration to specify the key management protocol to be used for WPA
+wpa-psk ascii 2024WLAN #configure a pre-shared key (PSK) for WPA (Wi-Fi Protected Access) security on a wireless network
+ip route 0.0.0.0 0.0.0.0 2.2.2.5 #the router ensures that any traffic for which it doesn't have a more specific route will be forwarded to the next-hop IP address 2.2.2.5
+ip dhcp pool WLAN #create a DHCP pool on a router
+network 10.1.2.0 255.255.254.0 #define the network range
+default-router 10.1.2.1 #default gateway
+dns-server 8.8.8.8
+no shutdown #enables an interface
+hostname SwP1 #changes the name to SwP1
+ip route [destination network] [subnet mask] [next-hop IP address] #configures a static route
+router rip #Enters RIP routing protocol configuration mode
+network [network address] #Enables RIP on the specified network
+vlan 10 #enters vlan configuration mode
+
+SET UP VLAN 101
+switchport access vlan 101
+switchport mode access
