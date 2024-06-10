@@ -32,6 +32,7 @@ ip route [destination network] [subnet mask] [next-hop IP address] #configures a
 router rip #Enters RIP routing protocol configuration mode
 network [network address] #Enables RIP on the specified network
 vlan 10 #enters vlan configuration mode
+ip routing #multi vlan in switch layer 3 i think
 
 SET UP VLAN 101
 switchport access vlan 101
